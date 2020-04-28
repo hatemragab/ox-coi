@@ -41,7 +41,7 @@
  */
 
 import 'package:meta/meta.dart';
-import 'package:ox_coi/src/share/shared_data.dart';
+import 'package:ox_coi/src/share/incoming_shared_data.dart';
 
 abstract class ShareEvent {}
 
@@ -72,7 +72,7 @@ class ForwardMessages extends ShareEvent {
 class LoadSharedData extends ShareEvent {}
 
 class SharedDataLoaded extends ShareEvent {
-  final SharedData sharedData;
+  final IncomingSharedData sharedData;
 
   SharedDataLoaded({@required this.sharedData});
 }
@@ -87,7 +87,7 @@ class ShareStateSuccess extends ShareState {
   final List<int> chatAndContactIds;
   final int chatIdCount;
   final int contactIdCount;
-  final SharedData sharedData;
+  final IncomingSharedData sharedData;
 
   ShareStateSuccess({
     this.chatAndContactIds,

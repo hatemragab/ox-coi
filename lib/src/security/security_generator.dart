@@ -40,49 +40,40 @@
  * for more details.
  */
 
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:ox_coi/src/security/security_generator.dart';
-import 'package:pointycastle/export.dart';
-import 'package:test/test.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/ecc/curves/secp256r1.dart';
+import 'package:pointycastle/key_generators/api.dart';
+import 'package:pointycastle/key_generators/ec_key_generator.dart';
+import 'package:pointycastle/random/fortuna_random.dart';
 import 'package:uuid/uuid.dart';
 
-void main() {
-  test("secure randoms", () {
-    final bytes = generateRandomBytes();
-    print("Bytes size (16): ${bytes.length}");
-    final bytes32 = generateRandomBytes(32);
-    print("Bytes size (32): ${bytes32.length}");
-  });
-
-  test('p256dh', () {
-    var domainParameters = ECCurve_secp256r1();
-    var params = ECKeyGeneratorParameters(domainParameters);
-    var generator = ECKeyGenerator();
-    generator.init(ParametersWithRandom(params, getSecureRandom()));
-    var generateKeyPair = generator.generateKeyPair();
-    ECPublicKey publicKey = generateKeyPair.publicKey;
-    print("Public Point: ${publicKey.Q}");
-    var bytes = utf8.encode(publicKey.Q.toString());
-    var base64Str = base64UrlEncode(bytes);
-    ECPrivateKey privateKey = generateKeyPair.privateKey;
-    print("Private Point: ${privateKey.d}");
-  });
-
-  test('UUID', () {
-    var uuid = new Uuid();
-    print("UUID ${uuid.v4()}");
-  });
+String generateUuid() {
+  final uuid = Uuid();
+  return uuid.v4();
 }
 
-SecureRandom getSecureRandom() {
-  var secureRandom = FortunaRandom();
-  var random = Random.secure();
+Uint8List generateRandomBytes([int length = 16]) {
+  final secureRandom = _getSecureRandom();
+  return secureRandom.nextBytes(length);
+}
+
+AsymmetricKeyPair generateEcKeyPair() {
+  final domainParameters = ECCurve_secp256r1();
+  final generatorParameters = ECKeyGeneratorParameters(domainParameters);
+  final generator = ECKeyGenerator();
+  generator.init(ParametersWithRandom(generatorParameters, _getSecureRandom()));
+  return generator.generateKeyPair();
+}
+
+SecureRandom _getSecureRandom() {
+  final secureRandom = FortunaRandom();
+  final seedingRandom = Random.secure();
   List<int> seeds = [];
   for (int i = 0; i < 32; i++) {
-    seeds.add(random.nextInt(255));
+    seeds.add(seedingRandom.nextInt(255));
   }
   secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
   return secureRandom;
