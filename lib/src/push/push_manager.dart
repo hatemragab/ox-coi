@@ -41,6 +41,7 @@
  */
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:delta_chat_core/delta_chat_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -89,44 +90,46 @@ class PushManager {
     //firebase setup
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        _logger.info(message);
+        _logger.info("[PushManager: setup] $message");
         final notificationData = NotificationData.fromJson(message);
         if (notificationData.valid) {
+          _logger.info("[PushManager: setup] Config Data are valid");
           final decryptedContent = await decryptAsync(notificationData.content);
           if (_isValidationPush(decryptedContent)) {
             final validation = _getPushValidation(decryptedContent).validation;
-            _logger.info("Validation message with state validation: $validation received");
+            _logger.info("[PushManager: setup] Validation message with state validation: $validation received");
             _pushBloc.add(ValidateMetadata(validation: validation));
           } else {
             final pushChatMessage = _getPushChatMessage(decryptedContent);
             final fromEmail = pushChatMessage.fromEmail;
             final context = Context();
-            print("dboehrs starting decrypt for content $pushChatMessage");
+            print("[PushManager: setup] starting decrypt for content $pushChatMessage");
 
             var contentType = pushChatMessage.contentType;
             if (contentType.isNullOrEmpty()) {
               contentType = "text/plain; charset=utf-8";
-              print("dboehrs manually setting content type to avoid null / empty value");
+              print("[PushManager: setup] manually setting content type to avoid null / empty value");
             }
             final body = await context.decryptInMemory(contentType, pushChatMessage.content, fromEmail);
-            print("dboehrs decrypt done with result: $body");
-            _logger.info("Chat message received from: $fromEmail");
+            print("[PushManager: setup] decrypt done with result: $body");
+            _logger.info("[PushManager: setup] Chat message received from: $fromEmail");
             await _notificationManager.showNotificationFromPushAsync(fromEmail, body);
           }
         }
+        _logger.info("[PushManager: setup] Config Data are *NOT* valid");
         return Future(null);
       },
       onResume: (Map<String, dynamic> message) {
         //TODO: Add functionality
-        _logger.info("onResume $message");
+        _logger.info("[PushManager: setup] onResume $message");
         return Future(null);
       },
       onLaunch: (Map<String, dynamic> message) {
         //TODO: Add functionality
-        _logger.info("onLaunch $message");
+        _logger.info("[PushManager: setup] onLaunch $message");
         return Future(null);
       },
-      onBackgroundMessage: onBackgroundMessage,
+      onBackgroundMessage: Platform.isAndroid ? onBackgroundMessage : null,
     );
     _firebaseMessaging.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true));
   }
@@ -143,6 +146,10 @@ class PushManager {
     final privateKey = await getPushPrivateKeyAsync();
     final publicKey = await getPushPublicKeyAsync();
     final auth = await getPushAuthAsync();
+
+    _logger.info("[PushManager: decryptAsync] privateKey: $privateKey");
+    _logger.info("[PushManager: decryptAsync] publicKey: $publicKey");
+    _logger.info("[PushManager: decryptAsync] auth: $auth");
 
     return await SecurityChannel.instance.invokeMethod(SecurityChannel.kMethodDecrypt, {
       SecurityChannel.kArgumentContent: encryptedBase64Content,

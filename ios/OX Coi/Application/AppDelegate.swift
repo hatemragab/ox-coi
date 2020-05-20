@@ -57,10 +57,10 @@ class AppDelegate: FlutterAppDelegate {
         UIApplication.setupLogging()
         UIApplication.setupFirebase()
 
-        UNUserNotificationCenter.current().delegate = self
+//        UNUserNotificationCenter.current().delegate = self
         GeneratedPluginRegistrant.register(with: self)
 
-        application.setMinimumBackgroundFetchInterval(60 * 5)
+//        application.setMinimumBackgroundFetchInterval(60 * 5)
         setupSharingMethodChannel()
         setupSecurityMethodChannel()
 
@@ -70,7 +70,7 @@ class AppDelegate: FlutterAppDelegate {
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         NSLog("[AppDelegate] open url")
         startString = url.absoluteString
-        self.setupSharingMethodChannel()
+        setupSharingMethodChannel()
         
         return true
     }

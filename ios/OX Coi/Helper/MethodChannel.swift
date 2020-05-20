@@ -62,7 +62,7 @@ extension MethodChannel {
     }
 
     struct Sharing {
-        static let Intent = "oxcoi.intent"
+        static let Intent = "oxcoi.sharing"
 
         struct Method {
             static let InitialLink    = "getInitialLink"
