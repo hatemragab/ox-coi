@@ -186,7 +186,7 @@ class CustomerDelegate with DynamicScreenCustomerDelegate {
     Navigation().popUntilRoot(context);
 
     _mainBloc = BlocProvider.of<MainBloc>(context);
-    _mainBloc.add(AppLoaded());
+    _mainBloc.add(AppLoaded(context: context));
   }
 }
 

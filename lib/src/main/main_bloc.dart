@@ -124,7 +124,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         await Customer().configureAsync();
         await UrlPreviewCache().prepareCache();
 
-        add(AppLoaded());
+        add(AppLoaded(context: event.context));
       } catch (error) {
         yield MainStateFailure(error: error.toString());
       }
@@ -137,6 +137,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       final needsOnboarding = Customer.needsOnboarding;
       if (needsOnboarding) {
         await Customer().configureOnboardingAsync();
+      } else {
+        await setupManagers(event.context);
       }
 
       final notificationsActivated = await Permission.notification.isGranted;
